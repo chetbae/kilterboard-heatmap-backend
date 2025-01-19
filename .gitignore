@@ -169,3 +169,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Database files
+*.db
+*.sqlite3

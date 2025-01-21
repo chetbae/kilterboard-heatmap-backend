@@ -1,70 +1,57 @@
-from fastapi import FastAPI, Query
-from fastapi.middleware.cors import CORSMiddleware
-import numpy as np
-from typing import List, Dict
-from .data_processor import KilterboardDataProcessor, HoldUsageConfig
-from . import convert_grade_to_v_scale
+from fastapi import FastAPI
+from typing import List, Dict, Any
+from models import HeatmapRequest, HeatmapResponse
+from db import get_db, calculate_frequencies
 
-app = FastAPI()
+app = FastAPI(title="Kilterboard Heatmap API")
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Adjust this in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.post("/api/v1/heatmap", response_model=HeatmapResponse)
+async def get_heatmap(request: HeatmapRequest) -> HeatmapResponse:
+    db = get_db()
+    try:
+        holds, metadata = calculate_frequencies(
+            db,
+            request.min_grade,
+            request.max_grade,
+            request.angle,
+            request.hold_type,
+            request.min_ascents
+        )
+        return HeatmapResponse(holds=holds, metadata=metadata)
+    finally:
+        db.close()
 
-# Initialize data processor
-processor = KilterboardDataProcessor("path_to_your_database.db")
+@app.get("/api/v1/angles")
+async def get_angles() -> List[int]:
+    """Get all available angles"""
+    db = get_db()
+    try:
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT DISTINCT angle 
+            FROM climb_stats 
+            WHERE angle IS NOT NULL 
+            ORDER BY angle
+        """)
+        return [row['angle'] for row in cursor.fetchall()]
+    finally:
+        db.close()
 
-@app.get("/api/heatmap")
-async def get_heatmap_data(
-    min_grade: float = Query(..., description="Minimum grade difficulty"),
-    max_grade: float = Query(..., description="Maximum grade difficulty"),
-    angle: int = Query(..., description="Wall angle"),
-    hold_type: str = Query("all", description="Type of holds to analyze")
-) -> Dict:
-    """Get heatmap data for the specified parameters."""
-    config = HoldUsageConfig(
-        min_grade=min_grade,
-        max_grade=max_grade,
-        angle=angle,
-        hold_type=hold_type
-    )
-    
-    # Calculate heatmap data
-    heatmap_data = processor.calculate_hold_frequencies(config)
-    
-    # Get summary statistics
-    stats = processor.get_summary_stats(config)
-    
-    return {
-        "heatmap": heatmap_data.tolist(),
-        "stats": stats,
-        "config": {
-            "min_grade": convert_grade_to_v_scale(min_grade),
-            "max_grade": convert_grade_to_v_scale(max_grade),
-            "angle": angle,
-            "hold_type": hold_type
-        }
-    }
-
-@app.get("/api/metadata")
-async def get_metadata() -> Dict:
-    """Get available ranges and options for filtering."""
-    min_grade, max_grade = processor.get_grade_range()
-    angles = processor.get_available_angles()
-    
-    return {
-        "grades": {
-            "min": convert_grade_to_v_scale(min_grade),
-            "max": convert_grade_to_v_scale(max_grade)
-        },
-        "angles": angles,
-        "holdTypes": ["all", "hands", "feet"]
-    }
+@app.get("/api/v1/grades")
+async def get_grades() -> List[Dict[str, Any]]:
+    """Get grade mapping information"""
+    db = get_db()
+    try:
+        cursor = db.cursor()
+        cursor.execute("""
+            SELECT difficulty, boulder_name, route_name
+            FROM difficulty_grades
+            WHERE is_listed = 1
+            ORDER BY difficulty
+        """)
+        return [dict(row) for row in cursor.fetchall()]
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from typing import List, Dict, Any
-from models import HeatmapRequest, HeatmapResponse
-from db import get_db, calculate_frequencies
+from .models import HeatmapRequest, HeatmapResponse
+from .db import get_db, calculate_frequencies
 
 app = FastAPI(title="Kilterboard Heatmap API")
 

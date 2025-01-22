@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from typing import List, Dict, Any, Tuple
 import sqlite3
 from collections import defaultdict
-from models import HoldType, HoldFrequency, ResponseMetadata
+from .models import HoldType, HoldFrequency, ResponseMetadata
 
 def get_db():
     conn = sqlite3.connect('kilter.db')
@@ -84,9 +84,6 @@ def calculate_frequencies(
     min_ascents: int
 ) -> Tuple[List[HoldFrequency], Dict[str, Any]]:
     """Calculate hold frequencies based on the given criteria"""
-
-    logger.info(f"Calculating frequencies for {min_grade}-{max_grade}°, {angle}°, {hold_type}, {min_ascents} ascents")
-
     cursor = db.cursor()
 
     # Modified query to ensure frames is not null and has expected format
@@ -107,8 +104,6 @@ def calculate_frequencies(
     """, (min_grade, max_grade, angle, min_ascents))
     
     climbs = cursor.fetchall()
-
-    logger.info(f"Found {len(climbs)} climbs matching criteria")
     
     if not climbs:
         raise HTTPException(status_code=404, detail="No climbs found matching criteria")
@@ -119,8 +114,6 @@ def calculate_frequencies(
     invalid_frames = 0
     
     for climb in climbs:
-
-        logger.info(f"> '{climb['name']}'")
 
         holds = parse_frames(climb['frames'])
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List
 from enum import Enum
 
 class HoldType(str, Enum):

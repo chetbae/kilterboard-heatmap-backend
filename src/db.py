@@ -3,9 +3,6 @@ from typing import List, Dict, Any, Tuple
 import sqlite3
 from collections import defaultdict
 from models import HoldType, HoldFrequency, ResponseMetadata
-import logging
-
-logger = logging.getLogger('uvicorn.error')
 
 def get_db():
     conn = sqlite3.connect('kilter.db')

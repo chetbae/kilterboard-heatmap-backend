@@ -5,6 +5,9 @@ from typing import List, Dict, Any, Tuple
 from collections import defaultdict
 from .models import HoldType, HoldFrequency, ResponseMetadata
 import sqlitecloud
+import logging
+
+logger = logging.getLogger('uvicorn.error')
 
 load_dotenv()
 
@@ -12,6 +15,11 @@ def get_db():
     DB_HOST = os.getenv('SQLITE_CLOUD_HOST')
     DB_NAME = os.getenv('SQLITE_CLOUD_NAME')
     API_KEY = os.getenv('SQLITE_CLOUD_API_KEY')
+
+    # log secrets for sanity checks
+    logger.info(f"SQLITE_CLOUD_HOST: {DB_HOST}")
+    logger.info(f"SQLITE_CLOUD_NAME: {DB_NAME}")
+    logger.info(f"SQLITE_CLOUD_API_KEY: {API_KEY}")
 
     conn = sqlitecloud.connect(f"sqlitecloud://{DB_HOST}/{DB_NAME}?apikey={API_KEY}")
     conn.row_factory = sqlitecloud.Row

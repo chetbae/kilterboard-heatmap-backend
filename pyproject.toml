@@ -1,0 +1,15 @@
+[project]
+name = "kilterboard_heatmap"
+version = "0.1.0"
+description = "Kilterboard Heatmap Backend API"
+dependencies = [
+    "fastapi>=0.115.6",
+    "uvicorn>=0.34.0",
+    "sqlitecloud>=0.0.83",
+    "python-dotenv>=1.0.1",
+    "pydantic>=2.10.5"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

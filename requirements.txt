@@ -9,7 +9,6 @@ fastapi==0.115.6
 h11==0.14.0
 idna==3.10
 iniconfig==2.0.0
--e git+https://github.com/chetbae/kilterboard-heatmap-backend.git@e6114e2b1653b942c02130378074b1da8871e6fc#egg=kilterboard_heatmap
 lz4==4.3.3
 numpy==2.2.2
 packaging==24.2

@@ -1,12 +1,20 @@
+import os
+from dotenv import load_dotenv
 from fastapi import HTTPException
 from typing import List, Dict, Any, Tuple
-import sqlite3
 from collections import defaultdict
 from .models import HoldType, HoldFrequency, ResponseMetadata
+import sqlitecloud
+
+load_dotenv()
 
 def get_db():
-    conn = sqlite3.connect('kilter.db')
-    conn.row_factory = sqlite3.Row
+    DB_HOST = os.getenv('SQLITE_CLOUD_HOST')
+    DB_NAME = os.getenv('SQLITE_CLOUD_NAME')
+    API_KEY = os.getenv('SQLITE_CLOUD_API_KEY')
+
+    conn = sqlitecloud.connect(f"sqlitecloud://{DB_HOST}/{DB_NAME}?apikey={API_KEY}")
+    conn.row_factory = sqlitecloud.Row
     return conn
 
 def parse_frames(frames: str) -> List[Dict[str, Any]]:
